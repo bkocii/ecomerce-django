@@ -182,7 +182,7 @@ def delete_cart_item(request, product_id, cart_item_id):
     return redirect('cart')
 
 
-@login_required(login_url='login')
+# @login_required(login_url='login')
 def checkout(request, total=0, quantity=0, cart_items=None):
     try:
         tax = 0

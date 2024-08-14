@@ -43,13 +43,13 @@ def product_detail(request, category_slug, product_slug):
     except Exception as e:
         print(e)
 
-    if request.user.is_authenticated:
-        try:
-            orderproduct = OrderProduct.objects.filter(user=request.user, product_id=single_product.id).exists()
-        except OrderProduct.DoesNotExist:
-            orderproduct = None
-    else:
-        orderproduct = None
+    # if request.user.is_authenticated:
+    #     try:
+    #         orderproduct = OrderProduct.objects.filter(user=request.user, product_id=single_product.id).exists()
+    #     except OrderProduct.DoesNotExist:
+    #         orderproduct = None
+    # else:
+    orderproduct = None
 
     reviews = ReviewRating.objects.filter(product_id=single_product.id, status=True)
 
@@ -80,22 +80,34 @@ def search(request):
 def submit_review(request, product_id):
     url = request.META.get('HTTP_REFERER')
     if request.method == 'POST':
-        try:
-            review = ReviewRating.objects.get(user__id=request.user.id, product__id=product_id)
-            form = ReviewForm(request.POST, instance=review)
-            form.save()
-            messages.success(request, 'Thank you! Your review has been updated.')
+        form = ReviewForm(request.POST)
+        if form.is_valid():
+            data = ReviewRating()
+            data.subject = form.cleaned_data['subject']
+            data.review = form.cleaned_data['review']
+            data.rating = form.cleaned_data['rating']
+            data.ip = request.META.get('REMOTE_ADDR')
+            data.product_id = product_id
+            # data.user_id = request.user.id
+            data.save()
+            messages.success(request, 'Thank you! Your review has been submitted.')
             return redirect(url)
-        except ReviewRating.DoesNotExist:
-            form = ReviewForm(request.POST)
-            if form.is_valid():
-                data = ReviewRating()
-                data.subject = form.cleaned_data['subject']
-                data.review = form.cleaned_data['review']
-                data.rating = form.cleaned_data['rating']
-                data.ip = request.META.get('REMOTE_ADDR')
-                data.product_id = product_id
-                data.user_id = request.user.id
-                data.save()
-                messages.success(request, 'Thank you! Your review has been submitted.')
-                return redirect(url)
+        # try:
+        #     review = ReviewRating.objects.get(user__id=request.user.id, product__id=product_id)
+        #     form = ReviewForm(request.POST, instance=review)
+        #     form.save()
+        #     messages.success(request, 'Thank you! Your review has been updated.')
+        #     return redirect(url)
+        # except ReviewRating.DoesNotExist:
+        #     form = ReviewForm(request.POST)
+        #     if form.is_valid():
+        #         data = ReviewRating()
+        #         data.subject = form.cleaned_data['subject']
+        #         data.review = form.cleaned_data['review']
+        #         data.rating = form.cleaned_data['rating']
+        #         data.ip = request.META.get('REMOTE_ADDR')
+        #         data.product_id = product_id
+        #         data.user_id = request.user.id
+        #         data.save()
+        #         messages.success(request, 'Thank you! Your review has been submitted.')
+        #         return redirect(url)
